@@ -1,0 +1,27 @@
+---
+version: 1
+slug: "src-components-operatingsystems-astro"
+primary_target: "src/components/OperatingSystems.astro"
+related_targets: ["src/components/Site.astro","src/data/content.ts"]
+---
+
+# Operating-system transfer history
+
+Scope: one new section shared by `/` and `/es/`. Mode: Experience.
+The user chose “Trayectoria deportiva” as the title: genuine OS logos as club crests and a horizontal timeline. Preserve Windows → Ubuntu → CachyOS → Omarchy and the supplied dates; CachyOS is desktop-only and overlaps Omarchy. Both remain active.
+
+## Direction contract
+
+THESIS: A football player's transfer record, with operating systems taking the place of clubs. This is one continuous timeline, rather than a grid of software skills.
+
+OWN-WORLD: Inherit Matchday: pitch green, chalk rules, Archivo, square controls, amber reserved for active status. Vendor logos keep their original colours.
+
+STORY: After the profile, explore four chronological stops, with the last two active at once. Touch, trackpad, keyboard and previous/next controls move the record horizontally.
+
+FIRST VIEWPORT: Large left-aligned section heading, explanatory sentence and navigation arrows. Below, a continuous chalk line connects large unboxed logos, names and complete date ranges. A partial next stop indicates overflow. Two amber labels show the concurrent active systems.
+
+FORM: A local extension of the established world; seed: none (pinned). User: “como si fuera una línea temporal de los equipos de fútbol en los que he jugado”; approved title: “Trayectoria deportiva”.
+
+FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
+
+No raster assets or new global tokens. Preserve incumbent DESIGN.md; record downloaded SVG provenance next to assets. No autoplay or vertical-scroll interception. Content stays available without JavaScript.

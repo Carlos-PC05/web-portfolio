@@ -1,0 +1,4 @@
+# Local analysis state and visual QA captures.
+/hook.cache.json
+/mocks/
+/review/

@@ -1,5 +1,54 @@
 export type Lang = 'en' | 'es';
 
+type OperatingSystemCopy = { since: string; until: string; context: string };
+
+export const operatingSystems: {
+  name: string;
+  logo: string;
+  start: string | null;
+  end: string | null;
+  en: OperatingSystemCopy;
+  es: OperatingSystemCopy;
+}[] = [
+  {
+    name: 'Windows', logo: 'windows', start: null, end: '2026-08',
+    en: { since: 'As long as I can remember', until: 'August 2026', context: 'The home club' },
+    es: { since: 'Desde que tengo uso de conciencia', until: 'Agosto 2026', context: 'El club de toda la vida' },
+  },
+  {
+    name: 'Ubuntu', logo: 'ubuntu', start: '2026-08', end: '2026-11',
+    en: { since: 'August 2026', until: 'November 2026', context: 'First Linux signing' },
+    es: { since: 'Agosto 2026', until: 'Noviembre 2026', context: 'Primer fichaje por Linux' },
+  },
+  {
+    name: 'CachyOS', logo: 'cachyos', start: '2026-09', end: null,
+    en: { since: 'September 2026', until: 'Present', context: 'On my desktop PC' },
+    es: { since: 'Septiembre 2026', until: 'Actualidad', context: 'En mi ordenador de sobremesa' },
+  },
+  {
+    name: 'Omarchy', logo: 'omarchy', start: '2026-11', end: null,
+    en: { since: 'November 2026', until: 'Present', context: 'The latest signing' },
+    es: { since: 'Noviembre 2026', until: 'Actualidad', context: 'El último fichaje' },
+  },
+];
+
+export const operatingSystemsUi = {
+  en: {
+    nav: 'Playing career', title: 'Playing career',
+    intro: 'The operating systems I have played for. Different crests, the same player.',
+    hint: 'Scroll to follow my career', keyboard: 'Use the left and right arrow keys, Home or End to explore the timeline.',
+    previous: 'Previous operating system', next: 'Next operating system',
+    active: 'Still playing',
+  },
+  es: {
+    nav: 'Trayectoria deportiva', title: 'Trayectoria deportiva',
+    intro: 'Los sistemas operativos en los que he jugado. Distintos escudos, el mismo jugador.',
+    hint: 'Desliza para recorrer mi trayectoria', keyboard: 'Usa las flechas izquierda y derecha, Inicio o Fin para explorar la línea temporal.',
+    previous: 'Sistema operativo anterior', next: 'Sistema operativo siguiente',
+    active: 'En activo',
+  },
+} as const;
+
 /* Facts. Nothing here may be invented — every value is verified.
    Empty string = not yet supplied by Carlos; the template renders nothing. */
 export const facts = {

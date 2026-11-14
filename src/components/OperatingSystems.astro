@@ -1,0 +1,119 @@
+---
+import { operatingSystems, operatingSystemsUi, type Lang } from '../data/content';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = operatingSystemsUi[lang];
+---
+
+<section class="pitch section transfers" id="transfers" aria-labelledby="transfers-title" data-os-timeline>
+  <div class="wrap">
+    <div class="transfer-heading">
+      <div class="sec-head">
+        <h2 class="t-display" id="transfers-title">{t.title}</h2>
+        <p class="sec-sub t-body">{t.intro}</p>
+      </div>
+      <div class="transfer-controls" hidden>
+        <button type="button" class="transfer-arrow" data-direction="-1" aria-label={t.previous} aria-controls="os-timeline">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m14 5-7 7 7 7M7 12h14" /></svg>
+        </button>
+        <button type="button" class="transfer-arrow" data-direction="1" aria-label={t.next} aria-controls="os-timeline">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m10 5 7 7-7 7M3 12h14" /></svg>
+        </button>
+      </div>
+    </div>
+
+    <p class="transfer-hint t-label" id="os-hint">{t.hint}</p>
+    <p class="visually-hidden" id="os-keyboard">{t.keyboard}</p>
+    <div class="transfer-viewport" id="os-timeline" tabindex="0" role="region" aria-labelledby="transfers-title" aria-describedby="os-hint os-keyboard">
+      <ol class="transfer-track">
+        {operatingSystems.map((os) => {
+          const c = os[lang];
+          return (
+            <li class="transfer-stop">
+              <span class="transfer-marker" aria-hidden="true"></span>
+              <div class="transfer-crest">
+                <img src={`/images/os/${os.logo}.svg`} alt="" width="104" height="104" loading="lazy" decoding="async" />
+              </div>
+              <h3 class="t-sheet">{os.name}</h3>
+              <p class="transfer-dates">
+                {os.start ? <time datetime={os.start}>{c.since}</time> : <span>{c.since}</span>}
+                <span aria-hidden="true"> — </span>
+                {os.end ? <time datetime={os.end}>{c.until}</time> : <span>{c.until}</span>}
+              </p>
+              <p class="transfer-context">{c.context}</p>
+              {!os.end && <p class="transfer-active t-label"><span aria-hidden="true"></span>{t.active}</p>}
+            </li>
+          );
+        })}
+      </ol>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-os-timeline]').forEach((section) => {
+    const viewport = section.querySelector<HTMLElement>('.transfer-viewport')!;
+    const controls = section.querySelector<HTMLElement>('.transfer-controls')!;
+    const buttons = Array.from(controls.querySelectorAll<HTMLButtonElement>('button'));
+    const stops = Array.from(section.querySelectorAll<HTMLElement>('.transfer-stop'));
+    const motion = matchMedia('(prefers-reduced-motion: reduce)');
+
+    const update = () => {
+      const max = viewport.scrollWidth - viewport.clientWidth;
+      controls.hidden = max <= 1;
+      buttons[0].disabled = viewport.scrollLeft <= 1;
+      buttons[1].disabled = viewport.scrollLeft >= max - 1;
+    };
+    const move = (direction: number) => {
+      const positions = stops.map((stop) => stop.offsetLeft - stops[0].offsetLeft);
+      const target = direction > 0
+        ? positions.find((left) => left > viewport.scrollLeft + 2) ?? viewport.scrollWidth
+        : positions.reverse().find((left) => left < viewport.scrollLeft - 2) ?? 0;
+      viewport.scrollTo({ left: target, behavior: motion.matches ? 'instant' : 'smooth' });
+    };
+    buttons.forEach((button) => button.addEventListener('click', () => move(Number(button.dataset.direction))));
+    viewport.addEventListener('scroll', update, { passive: true });
+    viewport.addEventListener('keydown', (event) => {
+      if (event.target !== viewport || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+      event.preventDefault();
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+        move(event.key === 'ArrowRight' ? 1 : -1);
+      } else {
+        viewport.scrollTo({ left: event.key === 'Home' ? 0 : viewport.scrollWidth, behavior: motion.matches ? 'instant' : 'smooth' });
+      }
+    });
+    new ResizeObserver(update).observe(viewport);
+    update();
+  });
+</script>
+
+<style>
+  .transfers { padding-top: var(--space-loose); }
+  .transfer-heading { display: flex; align-items: end; justify-content: space-between; gap: var(--space-base); margin-bottom: var(--space-loose); }
+  .transfer-heading .sec-head { margin: 0; max-width: 900px; }
+  .transfer-controls { display: flex; flex: none; gap: var(--space-tight); }
+  .transfer-controls[hidden] { display: none; }
+  .transfer-arrow { display: grid; place-items: center; width: 48px; height: 48px; padding: 0; border: 1px solid var(--chalk-dim); background: transparent; color: var(--chalk); cursor: pointer; transition: background 140ms var(--ease), color 140ms var(--ease); }
+  .transfer-arrow:hover:not(:disabled) { background: var(--chalk); color: var(--pitch); }
+  .transfer-arrow:active:not(:disabled) { background: var(--chalk-dim); }
+  .transfer-arrow:disabled { opacity: 0.4; cursor: default; }
+  .transfer-hint { color: var(--chalk-dim); line-height: 1.5; margin-bottom: var(--space-base); }
+  .transfer-viewport { position: relative; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; scrollbar-color: var(--chalk-dim) var(--pitch-deep); scrollbar-width: auto; padding-bottom: var(--space-base); }
+  .transfer-viewport::selection, .transfer-viewport ::selection { background: var(--chalk); color: var(--pitch); }
+  .transfer-track { display: grid; grid-auto-flow: column; grid-auto-columns: clamp(270px, 30vw, 370px); list-style: none; padding-top: var(--space-snug); width: max-content; }
+  .transfer-stop { position: relative; border-top: 2px solid var(--chalk-dim); padding: var(--space-loose) var(--space-base) var(--space-base) 0; scroll-snap-align: start; }
+  .transfer-marker { position: absolute; top: -7px; left: 0; width: 12px; height: 12px; background: var(--chalk); }
+  .transfer-crest { display: flex; align-items: center; width: 120px; height: 120px; margin-bottom: var(--space-base); }
+  .transfer-crest img { width: 104px; height: 104px; object-fit: contain; }
+  .transfer-dates { color: var(--chalk); margin-top: var(--space-snug); font-variant-numeric: tabular-nums; max-width: 29ch; }
+  .transfer-context { color: var(--chalk-dim); margin-top: var(--space-tight); }
+  .transfer-active { display: flex; align-items: center; gap: var(--space-tight); color: var(--board-amber); margin-top: var(--space-base); }
+  .transfer-active span { width: 8px; height: 8px; background: currentColor; }
+  @media (max-width: 599px) {
+    .transfer-heading { align-items: start; flex-direction: column; gap: var(--space-base); margin-bottom: var(--space-base); }
+    .transfer-track { grid-auto-columns: min(78vw, 300px); }
+    .transfer-stop { padding-right: var(--space-base); }
+  }
+</style>
