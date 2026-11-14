@@ -147,6 +147,7 @@ const t = operatingSystemsUi[lang];
     viewport.addEventListener('pointerdown', (event) => {
       if (event.button !== 0 || event.target instanceof Element && event.target.closest('button')) return;
       pointerStart = { x: event.clientX, y: event.clientY, id: event.pointerId };
+      viewport.setPointerCapture(event.pointerId);
     });
     viewport.addEventListener('pointerup', (event) => {
       if (!pointerStart || pointerStart.id !== event.pointerId) return;
@@ -162,6 +163,7 @@ const t = operatingSystemsUi[lang];
 
 <style>
   .transfers { padding-top: var(--space-loose); }
+  .transfer-heading .t-display { font-size: clamp(var(--fs-display), 5vw, 4.5rem); }
   .transfer-heading { display: flex; align-items: end; justify-content: space-between; gap: var(--space-base); margin-bottom: var(--space-base); }
   .transfer-heading .sec-head { margin: 0; max-width: 900px; }
   .transfer-controls { display: flex; flex: none; gap: var(--space-tight); }
@@ -219,6 +221,10 @@ const t = operatingSystemsUi[lang];
     .presentation-progress { width: min(70%, 300px); }
     .presentation-count { gap: 8px; }
     .count-rule { width: 18px; }
+  }
+  @media (max-height: 760px) and (min-width: 600px) {
+    .transfers { padding-top: var(--space-snug); }
+    .presentation { min-height: 360px; }
   }
   @media (prefers-reduced-motion: reduce) {
     .presentation.is-enhanced .presentation-stop.is-leaving { transition-duration: 0s; }
