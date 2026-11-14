@@ -34,18 +34,18 @@ export const operatingSystems: {
 
 export const operatingSystemsUi = {
   en: {
-    nav: 'Transfers', title: 'Transfer history',
+    nav: 'Playing career', title: 'Playing career',
     intro: 'The operating systems I have played for. Different crests, the same player.',
     hint: 'Scroll to follow my career', keyboard: 'Use the left and right arrow keys, Home or End to explore the timeline.',
     previous: 'Previous operating system', next: 'Next operating system',
-    active: 'Still playing', note: 'Two clubs, still in play: CachyOS on my desktop PC and Omarchy.',
+    active: 'Still playing',
   },
   es: {
-    nav: 'Fichajes', title: 'Historial de fichajes',
+    nav: 'Trayectoria deportiva', title: 'Trayectoria deportiva',
     intro: 'Los sistemas operativos en los que he jugado. Distintos escudos, el mismo jugador.',
     hint: 'Desliza para recorrer mi trayectoria', keyboard: 'Usa las flechas izquierda y derecha, Inicio o Fin para explorar la línea temporal.',
     previous: 'Sistema operativo anterior', next: 'Sistema operativo siguiente',
-    active: 'En activo', note: 'Dos clubes, todavía en juego: CachyOS en mi sobremesa y Omarchy.',
+    active: 'En activo',
   },
 } as const;
 
