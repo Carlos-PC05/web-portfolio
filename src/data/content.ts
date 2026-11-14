@@ -36,16 +36,18 @@ export const operatingSystemsUi = {
   en: {
     nav: 'Playing career', title: 'Playing career',
     intro: 'The operating systems I have played for. Different crests, the same player.',
-    hint: 'Scroll to follow my career', keyboard: 'Use the left and right arrow keys, Home or End to explore the timeline.',
+    hint: 'Swipe right or choose an arrow to meet the next team', keyboard: 'Use the left and right arrow keys, Home or End to explore the presentation.',
     previous: 'Previous operating system', next: 'Next operating system',
     active: 'Still playing',
+    step: 'Transfer', of: 'of', steps: 'Choose an operating system',
   },
   es: {
     nav: 'Trayectoria deportiva', title: 'Trayectoria deportiva',
     intro: 'Los sistemas operativos en los que he jugado. Distintos escudos, el mismo jugador.',
-    hint: 'Desliza para recorrer mi trayectoria', keyboard: 'Usa las flechas izquierda y derecha, Inicio o Fin para explorar la línea temporal.',
+    hint: 'Desliza a la derecha o pulsa una flecha para descubrir el siguiente equipo', keyboard: 'Usa las flechas izquierda y derecha, Inicio o Fin para recorrer la presentación.',
     previous: 'Sistema operativo anterior', next: 'Sistema operativo siguiente',
     active: 'En activo',
+    step: 'Temporada', of: 'de', steps: 'Elegir sistema operativo',
   },
 } as const;
 

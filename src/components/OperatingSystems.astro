@@ -6,7 +6,7 @@ const { lang } = Astro.props;
 const t = operatingSystemsUi[lang];
 ---
 
-<section class="pitch section transfers" id="transfers" aria-labelledby="transfers-title" data-os-timeline>
+<section class="pitch section transfers" id="transfers" aria-labelledby="transfers-title" data-os-presentation>
   <div class="wrap">
     <div class="transfer-heading">
       <div class="sec-head">
@@ -14,10 +14,10 @@ const t = operatingSystemsUi[lang];
         <p class="sec-sub t-body">{t.intro}</p>
       </div>
       <div class="transfer-controls" hidden>
-        <button type="button" class="transfer-arrow" data-direction="-1" aria-label={t.previous} aria-controls="os-timeline">
+        <button type="button" class="transfer-arrow" data-direction="-1" aria-label={t.previous} aria-controls="os-presentation">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m14 5-7 7 7 7M7 12h14" /></svg>
         </button>
-        <button type="button" class="transfer-arrow" data-direction="1" aria-label={t.next} aria-controls="os-timeline">
+        <button type="button" class="transfer-arrow" data-direction="1" aria-label={t.next} aria-controls="os-presentation">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m10 5 7 7-7 7M3 12h14" /></svg>
         </button>
       </div>
@@ -25,73 +25,144 @@ const t = operatingSystemsUi[lang];
 
     <p class="transfer-hint t-label" id="os-hint">{t.hint}</p>
     <p class="visually-hidden" id="os-keyboard">{t.keyboard}</p>
-    <div class="transfer-viewport" id="os-timeline" tabindex="0" role="region" aria-labelledby="transfers-title" aria-describedby="os-hint os-keyboard">
-      <ol class="transfer-track">
-        {operatingSystems.map((os) => {
+
+    <div class="presentation-footer">
+      <p class="presentation-count t-label" aria-hidden="true"><span data-current>01</span><span class="count-rule"></span>{String(operatingSystems.length).padStart(2, '0')}</p>
+      <nav class="presentation-progress" aria-label={t.steps}>
+        {operatingSystems.map((os, index) => (
+          <button class="progress-stop" type="button" data-step={index} aria-label={`${t.step} ${index + 1}: ${os.name}`} aria-controls="os-presentation" aria-current={index === 0 ? 'step' : undefined}>
+            <span aria-hidden="true"></span>
+          </button>
+        ))}
+      </nav>
+    </div>
+
+    <div class="presentation" id="os-presentation" tabindex="0" role="region" aria-roledescription={lang === 'es' ? 'presentación' : 'presentation'} aria-label={t.title} aria-describedby="os-hint os-keyboard">
+      <ol class="presentation-stops" aria-live="polite" aria-atomic="true">
+        {operatingSystems.map((os, index) => {
           const c = os[lang];
           return (
-            <li class="transfer-stop">
-              <span class="transfer-marker" aria-hidden="true"></span>
-              <div class="transfer-crest">
-                <img src={`/images/os/${os.logo}.svg`} alt="" width="104" height="104" loading="lazy" decoding="async" />
+            <li class="presentation-stop" aria-roledescription={lang === 'es' ? 'diapositiva' : 'slide'} aria-label={`${t.step} ${index + 1} ${t.of} ${operatingSystems.length}`}>
+              <div class="presentation-logo">
+                <img src={`/images/os/${os.logo}.svg`} alt="" width="240" height="240" decoding="async" />
+                <span class="presentation-number t-label" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
               </div>
-              <h3 class="t-sheet">{os.name}</h3>
-              <p class="transfer-dates">
-                {os.start ? <time datetime={os.start}>{c.since}</time> : <span>{c.since}</span>}
-                <span aria-hidden="true"> — </span>
-                {os.end ? <time datetime={os.end}>{c.until}</time> : <span>{c.until}</span>}
-              </p>
-              <p class="transfer-context">{c.context}</p>
-              {!os.end && <p class="transfer-active t-label"><span aria-hidden="true"></span>{t.active}</p>}
+              <div class="presentation-copy">
+                <p class="presentation-date t-label">
+                  {os.start ? <time datetime={os.start}>{c.since}</time> : <span>{c.since}</span>}
+                  <span aria-hidden="true"> — </span>
+                  {os.end ? <time datetime={os.end}>{c.until}</time> : <span>{c.until}</span>}
+                </p>
+                <h3 class="presentation-name">{os.name}</h3>
+                <p class="presentation-context t-body">{c.context}</p>
+                {!os.end && <p class="transfer-active t-label"><span aria-hidden="true"></span>{t.active}</p>}
+              </div>
             </li>
           );
         })}
       </ol>
     </div>
+
   </div>
 </section>
 
 <script>
-  document.querySelectorAll<HTMLElement>('[data-os-timeline]').forEach((section) => {
-    const viewport = section.querySelector<HTMLElement>('.transfer-viewport')!;
+  document.querySelectorAll<HTMLElement>('[data-os-presentation]').forEach((section) => {
+    const viewport = section.querySelector<HTMLElement>('.presentation')!;
+    const slides = Array.from(section.querySelectorAll<HTMLElement>('.presentation-stop'));
     const controls = section.querySelector<HTMLElement>('.transfer-controls')!;
     const buttons = Array.from(controls.querySelectorAll<HTMLButtonElement>('button'));
-    const stops = Array.from(section.querySelectorAll<HTMLElement>('.transfer-stop'));
-    const motion = matchMedia('(prefers-reduced-motion: reduce)');
+    const progressStops = Array.from(section.querySelectorAll<HTMLButtonElement>('.progress-stop'));
+    const counter = section.querySelector<HTMLElement>('[data-current]')!;
+    const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+    let current = 0;
+    let pointerStart: { x: number; y: number; id: number } | undefined;
 
-    const update = () => {
-      const max = viewport.scrollWidth - viewport.clientWidth;
-      controls.hidden = max <= 1;
-      buttons[0].disabled = viewport.scrollLeft <= 1;
-      buttons[1].disabled = viewport.scrollLeft >= max - 1;
+    const select = (index: number) => {
+      const next = Math.max(0, Math.min(slides.length - 1, index));
+      if (next === current) return;
+
+      const previousSlide = slides[current];
+      const nextSlide = slides[next];
+      const direction = next > current ? 1 : -1;
+      previousSlide.style.setProperty('--travel-direction', String(direction));
+      previousSlide.classList.remove('is-current', 'is-entering');
+      previousSlide.classList.add('is-leaving');
+      previousSlide.setAttribute('aria-hidden', 'true');
+      previousSlide.inert = true;
+
+      nextSlide.classList.remove('is-leaving', 'is-current', 'is-entering');
+      nextSlide.style.setProperty('--travel-direction', String(direction));
+      nextSlide.inert = false;
+      nextSlide.removeAttribute('aria-hidden');
+
+      if (!reducedMotion.matches) {
+        nextSlide.classList.add('is-entering');
+        void nextSlide.offsetWidth;
+      }
+      nextSlide.classList.add('is-current');
+
+      current = next;
+      counter.textContent = String(current + 1).padStart(2, '0');
+      progressStops.forEach((stop, stopIndex) => {
+        if (stopIndex === current) stop.setAttribute('aria-current', 'step');
+        else stop.removeAttribute('aria-current');
+      });
+      buttons[0].disabled = current === 0;
+      buttons[1].disabled = current === slides.length - 1;
     };
-    const move = (direction: number) => {
-      const positions = stops.map((stop) => stop.offsetLeft - stops[0].offsetLeft);
-      const target = direction > 0
-        ? positions.find((left) => left > viewport.scrollLeft + 2) ?? viewport.scrollWidth
-        : positions.reverse().find((left) => left < viewport.scrollLeft - 2) ?? 0;
-      viewport.scrollTo({ left: target, behavior: motion.matches ? 'instant' : 'smooth' });
-    };
-    buttons.forEach((button) => button.addEventListener('click', () => move(Number(button.dataset.direction))));
-    viewport.addEventListener('scroll', update, { passive: true });
+
+    slides.forEach((slide, index) => {
+      if (index === 0) slide.classList.add('is-current');
+      else {
+        slide.setAttribute('aria-hidden', 'true');
+        slide.inert = true;
+      }
+      slide.addEventListener('animationend', (event) => {
+        if (event.target === slide && slide.classList.contains('is-leaving')) {
+          slide.classList.remove('is-leaving');
+          slide.classList.remove('is-entering');
+        }
+      });
+    });
+
+    viewport.classList.add('is-enhanced');
+    controls.hidden = false;
+    buttons[0].disabled = true;
+    buttons[1].disabled = false;
+    buttons.forEach((button) => button.addEventListener('click', () => select(current + Number(button.dataset.direction))));
+    progressStops.forEach((stop) => stop.addEventListener('click', () => select(Number(stop.dataset.step))));
+
     viewport.addEventListener('keydown', (event) => {
-      if (event.target !== viewport || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+      if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
       if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
       event.preventDefault();
       if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
-        move(event.key === 'ArrowRight' ? 1 : -1);
+        select(current + (event.key === 'ArrowRight' ? 1 : -1));
       } else {
-        viewport.scrollTo({ left: event.key === 'Home' ? 0 : viewport.scrollWidth, behavior: motion.matches ? 'instant' : 'smooth' });
+        select(event.key === 'Home' ? 0 : slides.length - 1);
       }
     });
-    new ResizeObserver(update).observe(viewport);
-    update();
+
+    viewport.addEventListener('pointerdown', (event) => {
+      if (event.button !== 0 || event.target instanceof Element && event.target.closest('button')) return;
+      pointerStart = { x: event.clientX, y: event.clientY, id: event.pointerId };
+    });
+    viewport.addEventListener('pointerup', (event) => {
+      if (!pointerStart || pointerStart.id !== event.pointerId) return;
+      const dx = event.clientX - pointerStart.x;
+      const dy = event.clientY - pointerStart.y;
+      pointerStart = undefined;
+      if (Math.abs(dx) < 48 || Math.abs(dx) < Math.abs(dy) * 1.25) return;
+      select(current + (dx > 0 ? 1 : -1));
+    });
+    viewport.addEventListener('pointercancel', () => { pointerStart = undefined; });
   });
 </script>
 
 <style>
   .transfers { padding-top: var(--space-loose); }
-  .transfer-heading { display: flex; align-items: end; justify-content: space-between; gap: var(--space-base); margin-bottom: var(--space-loose); }
+  .transfer-heading { display: flex; align-items: end; justify-content: space-between; gap: var(--space-base); margin-bottom: var(--space-base); }
   .transfer-heading .sec-head { margin: 0; max-width: 900px; }
   .transfer-controls { display: flex; flex: none; gap: var(--space-tight); }
   .transfer-controls[hidden] { display: none; }
@@ -100,20 +171,56 @@ const t = operatingSystemsUi[lang];
   .transfer-arrow:active:not(:disabled) { background: var(--chalk-dim); }
   .transfer-arrow:disabled { opacity: 0.4; cursor: default; }
   .transfer-hint { color: var(--chalk-dim); line-height: 1.5; margin-bottom: var(--space-base); }
-  .transfer-viewport { position: relative; overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; scrollbar-color: var(--chalk-dim) var(--pitch-deep); scrollbar-width: auto; padding-bottom: var(--space-base); }
-  .transfer-viewport::selection, .transfer-viewport ::selection { background: var(--chalk); color: var(--pitch); }
-  .transfer-track { display: grid; grid-auto-flow: column; grid-auto-columns: clamp(270px, 30vw, 370px); list-style: none; padding-top: var(--space-snug); width: max-content; }
-  .transfer-stop { position: relative; border-top: 2px solid var(--chalk-dim); padding: var(--space-loose) var(--space-base) var(--space-base) 0; scroll-snap-align: start; }
-  .transfer-marker { position: absolute; top: -7px; left: 0; width: 12px; height: 12px; background: var(--chalk); }
-  .transfer-crest { display: flex; align-items: center; width: 120px; height: 120px; margin-bottom: var(--space-base); }
-  .transfer-crest img { width: 104px; height: 104px; object-fit: contain; }
-  .transfer-dates { color: var(--chalk); margin-top: var(--space-snug); font-variant-numeric: tabular-nums; max-width: 29ch; }
-  .transfer-context { color: var(--chalk-dim); margin-top: var(--space-tight); }
+
+  .presentation { position: relative; min-height: clamp(360px, 41vw, 530px); overflow: clip; border-block: 1px solid rgba(244, 246, 241, 0.3); touch-action: pan-y; }
+  .presentation:focus-visible { outline-offset: 5px; }
+  .presentation-stops { display: grid; list-style: none; min-height: inherit; }
+  .presentation-stop { position: relative; display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); align-items: center; gap: clamp(24px, 6vw, 88px); grid-area: 1 / 1; min-height: inherit; padding: clamp(32px, 6vw, 80px); }
+  .presentation-logo { position: relative; display: grid; justify-items: center; align-items: center; min-height: 240px; }
+  .presentation-logo img { width: clamp(150px, 22vw, 260px); height: clamp(150px, 22vw, 260px); object-fit: contain; }
+  .presentation-number { position: absolute; left: 0; bottom: 0; color: var(--chalk-dim); font-variant-numeric: tabular-nums; }
+  .presentation-date { color: var(--chalk-dim); line-height: 1.5; max-width: 46ch; }
+  .presentation-name { margin-top: var(--space-base); font-size: clamp(2.25rem, 8vw, 4.75rem); font-weight: 900; font-stretch: 110%; line-height: 0.88; letter-spacing: -0.04em; text-transform: uppercase; text-wrap: balance; }
+  .presentation-context { margin-top: var(--space-base); color: var(--chalk-dim); }
   .transfer-active { display: flex; align-items: center; gap: var(--space-tight); color: var(--board-amber); margin-top: var(--space-base); }
   .transfer-active span { width: 8px; height: 8px; background: currentColor; }
+
+  .presentation.is-enhanced .presentation-stop { visibility: hidden; opacity: 0; pointer-events: none; transform: translateX(3vw); }
+  .presentation.is-enhanced .presentation-stop.is-current { visibility: visible; opacity: 1; pointer-events: auto; transform: translateX(0); }
+  .presentation.is-enhanced .presentation-stop.is-leaving { visibility: visible; opacity: 0; transform: translateX(calc(var(--travel-direction, 1) * -3vw)); transition: opacity 240ms ease-in, transform 320ms var(--ease), visibility 0s 320ms; }
+  @media (prefers-reduced-motion: no-preference) {
+    .presentation.is-enhanced .presentation-stop { transition: opacity 240ms ease-in, transform 320ms var(--ease), visibility 0s 320ms; }
+    .presentation.is-enhanced .presentation-stop.is-entering .presentation-logo { animation: crest-arrive 620ms var(--ease) both; }
+    .presentation.is-enhanced .presentation-stop.is-entering .presentation-copy { animation: copy-arrive 480ms var(--ease) 70ms both; }
+  }
+  @keyframes crest-arrive { from { opacity: 0; transform: translateX(calc(var(--travel-direction, 1) * 48px)) scale(0.84); } to { opacity: 1; transform: translateX(0) scale(1); } }
+  @keyframes copy-arrive { from { opacity: 0; transform: translateX(calc(var(--travel-direction, 1) * 26px)); } to { opacity: 1; transform: translateX(0); } }
+
+  .presentation-footer { display: flex; align-items: center; justify-content: space-between; gap: var(--space-base); margin-bottom: var(--space-snug); }
+  .presentation-count { display: flex; align-items: center; gap: 12px; color: var(--chalk-dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .presentation-count [data-current] { color: var(--chalk); }
+  .count-rule { width: 36px; height: 1px; background: rgba(244, 246, 241, 0.35); }
+  .presentation-progress { display: flex; align-items: center; width: min(62%, 440px); }
+  .progress-stop { position: relative; display: grid; align-items: center; justify-items: start; flex: 1; min-width: 44px; height: 44px; border: 0; background: transparent; cursor: pointer; }
+  .progress-stop::before { position: absolute; right: 0; left: 0; height: 2px; background: rgba(244, 246, 241, 0.35); content: ''; }
+  .progress-stop span { position: relative; width: 10px; height: 10px; border: 2px solid var(--chalk-dim); background: var(--pitch); transition: background 180ms var(--ease), border-color 180ms var(--ease), transform 180ms var(--ease); }
+  .progress-stop:hover span { transform: scale(1.25); }
+  .progress-stop[aria-current='step'] span { border-color: var(--chalk); background: var(--chalk); }
+
   @media (max-width: 599px) {
-    .transfer-heading { align-items: start; flex-direction: column; gap: var(--space-base); margin-bottom: var(--space-base); }
-    .transfer-track { grid-auto-columns: min(78vw, 300px); }
-    .transfer-stop { padding-right: var(--space-base); }
+    .transfer-heading { align-items: start; flex-direction: column; gap: var(--space-base); }
+    .presentation { min-height: 400px; }
+    .presentation-stop { grid-template-columns: 1fr; align-content: center; gap: var(--space-base); padding: var(--space-base); }
+    .presentation-logo { min-height: 140px; }
+    .presentation-logo img { width: 136px; height: 136px; }
+    .presentation-number { left: 0; bottom: 0; }
+    .presentation-name { margin-top: var(--space-snug); font-size: clamp(var(--fs-display), 13vw, 4rem); }
+    .presentation-context { margin-top: var(--space-snug); }
+    .presentation-progress { width: min(70%, 300px); }
+    .presentation-count { gap: 8px; }
+    .count-rule { width: 18px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .presentation.is-enhanced .presentation-stop.is-leaving { transition-duration: 0s; }
   }
 </style>
