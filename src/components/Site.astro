@@ -28,6 +28,8 @@
  the programme's own sequence: pitch → sheet → pitch → sheet → board.
 */
 import Markings from './Markings.astro';
+import OperatingSystems from './OperatingSystems.astro';
+import { operatingSystemsUi } from '../data/content';
 import { facts, projects, range, season, ui, type Lang } from '../data/content';
 
 interface Props {
@@ -53,6 +55,7 @@ const mailto = `mailto:${facts.email}`;
       <a href="#squad">{t.nav.squad}</a>
       <a href="#season">{t.nav.season}</a>
       <a href="#profile">{t.nav.profile}</a>
+      <a href="#transfers">{operatingSystemsUi[lang].nav}</a>
       <a href="#contact">{t.nav.contact}</a>
     </nav>
   </div>
@@ -205,6 +208,8 @@ const mailto = `mailto:${facts.email}`;
       </div>
     </div>
   </section>
+
+  <OperatingSystems lang={lang} />
 </main>
 
 <!-- ── Contact: the board ─────────────────────────────────── -->

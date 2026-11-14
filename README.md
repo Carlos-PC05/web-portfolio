@@ -1,7 +1,7 @@
 # Carlos Parra Camacho — Portfolio
 
-Bilingual (EN/ES) personal portfolio. Astro, static output, **zero client-side
-JavaScript**, 40 KB built.
+Bilingual (EN/ES) personal portfolio. Astro, static output, with small client-side
+scripts for the pitch cursor and the horizontal operating-system timeline.
 
 ```bash
 npm install
@@ -16,6 +16,9 @@ npm run build    # → dist/
 | Any text, in either language | `src/data/content.ts` |
 | A project, its stack, or its repo link | `projects` in `src/data/content.ts` |
 | A job or its dates | `season` in `src/data/content.ts` |
+| An operating system or its dates | `operatingSystems` in `src/data/content.ts` |
+| The horizontal transfer timeline | `src/components/OperatingSystems.astro` |
+| Operating-system logos and their sources | `public/images/os/` |
 | Colors, type, spacing | `:root` in `src/styles/global.css` |
 | The pitch line markings | `src/components/Markings.astro` |
 | Page structure | `src/components/Site.astro` |
